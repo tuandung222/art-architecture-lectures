@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkart_architecture_lectures=self.webpackChunkart_architecture_lectures||[]).push([["1962"],{4737(e,r,c){c.d(r,{createPieServices:()=>t.f});var t=c(532);c(9302)}}]);
