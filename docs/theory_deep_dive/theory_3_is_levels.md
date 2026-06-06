@@ -5,17 +5,17 @@ sidebar_label: "Theory 3: Importance Sampling Levels"
 
 # Theory 3: Importance Sampling Levels: 4 cách aggregate ratio
 
-Bài này phân tích 4 cách ART aggregate importance-sampling ratio \(\rho\) từ **token-level** lên **sequence-level** và các biến thể, kèm phân tích bias-variance trade-off, và code trong `loss.py`.
+Bài này phân tích 4 cách ART aggregate importance-sampling ratio $\rho$ từ **token-level** lên **sequence-level** và các biến thể, kèm phân tích bias-variance trade-off, và code trong `loss.py`.
 
 ---
 
 ## 1. Tại sao cần aggregate ratio?
 
-Ở PPO/CISPO cổ điển, \(\rho_t = \pi_\theta(a_t|s_t) / \pi_{\text{old}}(a_t|s_t)\) cho **mỗi token**. Với rollout ngắn (50 token), variance của \(\rho\) thấp. Nhưng với rollout dài (500-2000 token):
+Ở PPO/CISPO cổ điển, $\rho_t = \pi_\theta(a_t|s_t) / \pi_\{\text\{old\}\}(a_t|s_t)$ cho **mỗi token**. Với rollout ngắn (50 token), variance của $\rho$ thấp. Nhưng với rollout dài (500-2000 token):
 
-* Một số token có \(\pi_{\text{old}} \approx 0\) (model không hề "nghĩ" đến action này trước đó) -> \(\rho\) cực lớn.
-* Một số token có \(\pi_\theta\) tăng đột biến do exploration.
-* Variance \(\rho\) cao -> gradient noisy.
+* Một số token có $\pi_\{\text\{old\}\} \approx 0$ (model không hề "nghĩ" đến action này trước đó) -> $\rho$ cực lớn.
+* Một số token có $\pi_\theta$ tăng đột biến do exploration.
+* Variance $\rho$ cao -> gradient noisy.
 
 Sequence-level ratio là một cách **giảm variance** bằng cách gộp qua cả rollout. Ý tưởng: nếu rollout tổng thể là "tốt" (high reward) hoặc "xấu" (low reward), ta không cần IS weight chi tiết từng token; một số vô hướng đủ.
 
@@ -45,33 +45,33 @@ if importance_sampling_level != "token":
 
 ### 2.1. `token` (mặc định)
 
-\[
-\rho_t = \exp(\log \pi_\theta(a_t|s_t) - \log \pi_{\text{old}}(a_t|s_t))
-\]
+$$
+\rho_t = \exp(\log \pi_\theta(a_t|s_t) - \log \pi_\{\text\{old\}\}(a_t|s_t))
+$$
 
 Mỗi token có weight riêng. Variance cao, bias thấp. Phù hợp rollout ngắn.
 
 ### 2.2. `sequence`
 
-\[
-\rho_{\text{seq}} = \exp\left( \frac{1}{|T|} \sum_{t \in T} (\log \pi_\theta(a_t|s_t) - \log \pi_{\text{old}}(a_t|s_t)) \right)
-\]
+$$
+\rho_\{\text\{seq\}\} = \exp\left( \frac\{1\}\{|T|\} \sum_\{t \in T\} (\log \pi_\theta(a_t|s_t) - \log \pi_\{\text\{old\}\}(a_t|s_t)) \right)
+$$
 
 Một số vô hướng cho cả rollout. Variance thấp hơn nhiều, nhưng mất tín hiệu per-token. Phù hợp rollout dài và reward ở cuối.
 
 ### 2.3. `average`
 
-\[
-\rho_t^{\text{avg}} = \frac{1}{2}(\rho_t + \rho_{\text{seq}})
-\]
+$$
+\rho_t^\{\text\{avg\}\} = \frac\{1\}\{2\}(\rho_t + \rho_\{\text\{seq\}\})
+$$
 
 Trung bình cộng. Kết hợp signal per-token và global. Phù hợp rollout trung bình (200-500 token).
 
 ### 2.4. `geometric_average`
 
-\[
-\rho_t^{\text{geo}} = \sqrt{\rho_t \cdot \rho_{\text{seq}}} = \exp\left( \frac{1}{2}(\log \rho_t + \log \rho_{\text{seq}}) \right)
-\]
+$$
+\rho_t^\{\text\{geo\}\} = \sqrt\{\rho_t \cdot \rho_\{\text\{seq\}\}\} = \exp\left( \frac\{1\}\{2\}(\log \rho_t + \log \rho_\{\text\{seq\}\}) \right)
+$$
 
 Trung bình nhân (trong log space). Tương tự `average` nhưng "fair" hơn khi scale lớn. Phù hợp rollout có mix token dễ và khó.
 
@@ -108,30 +108,30 @@ Một điểm tinh tế: `group_ids * assistant_mask` -> token assistant giữ g
 
 ## 4. Phân tích variance
 
-Giả sử rollout có T token. Coi log ratio \(\delta_t = \log \pi_\theta - \log \pi_{\text{old}}\) là biến ngẫu nhiên iid với mean \(\mu\) và std \(\sigma\).
+Giả sử rollout có T token. Coi log ratio $\delta_t = \log \pi_\theta - \log \pi_\{\text\{old\}\}$ là biến ngẫu nhiên iid với mean $\mu$ và std $\sigma$.
 
 ### 4.1. `token` ratio
 
-\[
+$$
 \rho_t = \exp(\delta_t)
-\]
+$$
 
-\[
-\mathbb{E}[\rho_t] = \exp(\mu + \sigma^2/2) \quad \text{(lognormal mean)}
-\]
-\[
-\text{Var}[\rho_t] = (\exp(\sigma^2) - 1) \exp(2\mu + \sigma^2)
-\]
+$$
+\mathbb\{E\}[\rho_t] = \exp(\mu + \sigma^2/2) \quad \text\{(lognormal mean)\}
+$$
+$$
+\text\{Var\}[\rho_t] = (\exp(\sigma^2) - 1) \exp(2\mu + \sigma^2)
+$$
 
-Variance tăng theo cấp số nhân với \(\sigma^2\). Với \(\sigma = 0.5\) (realistic), variance có thể rất lớn.
+Variance tăng theo cấp số nhân với $\sigma^2$. Với $\sigma = 0.5$ (realistic), variance có thể rất lớn.
 
 ### 4.2. `sequence` ratio
 
-\[
-\rho_{\text{seq}} = \exp\left( \frac{1}{T} \sum_t \delta_t \right)
-\]
+$$
+\rho_\{\text\{seq\}\} = \exp\left( \frac\{1\}\{T\} \sum_t \delta_t \right)
+$$
 
-Với T lớn, \(\frac{1}{T} \sum \delta_t \sim \mathcal{N}(\mu, \sigma^2/T)\). Variance của \(\rho_{\text{seq}}\) tỉ lệ nghịch với T. **Variance giảm sqrt(T) lần so với token ratio**.
+Với T lớn, $\frac\{1\}\{T\} \sum \delta_t \sim \mathcal\{N\}(\mu, \sigma^2/T)$. Variance của $\rho_\{\text\{seq\}\}$ tỉ lệ nghịch với T. **Variance giảm sqrt(T) lần so với token ratio**.
 
 ### 4.3. So sánh
 
@@ -148,13 +148,13 @@ Khi rollout rất dài (2000+ token) và reward ở cuối (không thể biết 
 
 ## 5. Bias analysis
 
-Vì \(\rho_{\text{seq}}\) dùng mean của log ratio, nó **không phải unbiased estimator** của mean \(\rho_t\). Thực tế:
+Vì $\rho_\{\text\{seq\}\}$ dùng mean của log ratio, nó **không phải unbiased estimator** của mean $\rho_t$. Thực tế:
 
-\[
-\mathbb{E}[\rho_{\text{seq}}] = \exp(\mu) \cdot \mathbb{E}\left[\exp\left( \frac{1}{T} \sum (\delta_t - \mu) \right)\right] = \exp(\mu) \cdot \exp(\sigma^2 / (2T))
-\]
+$$
+\mathbb\{E\}[\rho_\{\text\{seq\}\}] = \exp(\mu) \cdot \mathbb\{E\}\left[\exp\left( \frac\{1\}\{T\} \sum (\delta_t - \mu) \right)\right] = \exp(\mu) \cdot \exp(\sigma^2 / (2T))
+$$
 
-Nghĩa là \(\rho_{\text{seq}}\) hơi inflated. Với T lớn, bias gần 0.
+Nghĩa là $\rho_\{\text\{seq\}\}$ hơi inflated. Với T lớn, bias gần 0.
 
 Với rollout có token "đặc biệt" (token quan trọng, quyết định success/fail), `sequence` ratio **không phân biệt được** token đó. Đây là lý do `average` và `geometric_average` tồn tại: giữ tín hiệu per-token nhưng giảm variance.
 
@@ -299,19 +299,19 @@ Trong thực tế, `loss_fn` thực hiện inline để tránh overhead function
 
 Rollout 100 token, tất cả token có `log_ratio = 0.1` (model tăng nhẹ confidence). group_id giống nhau.
 
-* `token`: \(\rho_t = e^{0.1} \approx 1.105\) cho mỗi token.
-* `sequence`: \(\rho_{\text{seq}} = e^{0.1} \approx 1.105\) (vì mean = 0.1).
-* `average`: \((1.105 + 1.105) / 2 = 1.105\).
-* `geometric`: \(\sqrt{1.105 \times 1.105} = 1.105\).
+* `token`: $\rho_t = e^\{0.1\} \approx 1.105$ cho mỗi token.
+* `sequence`: $\rho_\{\text\{seq\}\} = e^\{0.1\} \approx 1.105$ (vì mean = 0.1).
+* `average`: $(1.105 + 1.105) / 2 = 1.105$.
+* `geometric`: $\sqrt\{1.105 \times 1.105\} = 1.105$.
 
 Trong trường hợp này cả 4 level giống nhau (vì log ratio đều).
 
 Rollout 100 token, một nửa log_ratio = -0.2, nửa kia = +0.4. Mean = 0.1 (giống ví dụ trên).
 
-* `token`: một nửa \(\rho = e^{-0.2} \approx 0.819\), nửa kia \(\rho = e^{0.4} \approx 1.492\). Variance cao.
-* `sequence`: \(\rho_{\text{seq}} = e^{0.1} \approx 1.105\) (vì mean = 0.1).
+* `token`: một nửa $\rho = e^\{-0.2\} \approx 0.819$, nửa kia $\rho = e^\{0.4\} \approx 1.492$. Variance cao.
+* `sequence`: $\rho_\{\text\{seq\}\} = e^\{0.1\} \approx 1.105$ (vì mean = 0.1).
 * `average`: trung bình cộng ~ 1.155.
-* `geometric`: \(\sqrt{0.819 \times 1.492} \approx 1.105\).
+* `geometric`: $\sqrt\{0.819 \times 1.492\} \approx 1.105$.
 
 Đây là lúc `sequence` và `geometric` thể hiện variance reduction.
 
@@ -330,10 +330,10 @@ Rollout 100 token, một nửa log_ratio = -0.2, nửa kia = +0.4. Mean = 0.1 (g
 
 | Level | Công thức | Variance | Bias | Khi nào |
 | --- | --- | --- | --- | --- |
-| `token` | \(\exp(\delta_t)\) | Cao | 0 | Rollout ngắn |
-| `sequence` | \(\exp(\frac{1}{T} \sum \delta_t)\) | Thấp | Hơi biased | Rollout dài, dense reward cuối |
-| `average` | \((\rho_t + \rho_{\text{seq}})/2\) | Trung bình | Trung bình | Rollout trung bình |
-| `geometric_average` | \(\sqrt{\rho_t \cdot \rho_{\text{seq}}}\) | Trung bình | Trung bình | Mix dễ/khó |
+| `token` | $\exp(\delta_t)$ | Cao | 0 | Rollout ngắn |
+| `sequence` | $\exp(\frac\{1\}\{T\} \sum \delta_t)$ | Thấp | Hơi biased | Rollout dài, dense reward cuối |
+| `average` | $(\rho_t + \rho_\{\text\{seq\}\})/2$ | Trung bình | Trung bình | Rollout trung bình |
+| `geometric_average` | $\sqrt\{\rho_t \cdot \rho_\{\text\{seq\}\}\}$ | Trung bình | Trung bình | Mix dễ/khó |
 
 Code: `src/art/loss.py`, đoạn `if importance_sampling_level != "token":`.
 

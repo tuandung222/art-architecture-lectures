@@ -82,7 +82,7 @@ PPO là thuật toán học tăng cường dựa trên Policy Gradient, được
 Một hệ thống PPO tiêu chuẩn yêu cầu tải đồng thời 4 mô hình lớn lên GPU:
 
 1. **Actor ($\pi_\theta$)**: Mô hình đích cần huấn luyện, sinh ra response.
-2. **Reference ($\pi_{ref}$)**: Mô hình đóng băng, dùng để tính KL Divergence.
+2. **Reference ($\pi_\{ref\}$)**: Mô hình đóng băng, dùng để tính KL Divergence.
 3. **Critic ($V_\phi$)**: Mạng ước lượng giá trị (Value Network), giúp giảm phương sai của Policy Gradient.
 4. **Reward ($R$)**: Mô hình tính điểm thưởng (Reward Network).
 
@@ -103,12 +103,12 @@ graph TD
 ### 3.2. Công thức toán học cốt lõi
 Mục tiêu của PPO là tối ưu hóa hàm Surrogate Loss bị cắt (clipped surrogate objective):
 
-$$L^{CLIP}(\theta) = \hat{\mathbb{E}}_t \left[ \min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right) \right]$$
+$$L^\{CLIP\}(\theta) = \hat\{\mathbb\{E\}\}_t \left[ \min\left(r_t(\theta)\hat\{A\}_t, \text\{clip\}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat\{A\}_t\right) \right]$$
 
 Trong đó:
-- Tỷ lệ xác suất: $r_t(\theta) = \frac{\pi_\theta(a_t | s_t)}{\pi_{\theta_{old}}(a_t | s_t)}$
-- $\hat{A}_t$ là Lợi thế (Advantage) được tính qua GAE từ Critic và Reward.
-- KL Penalty: $R_{KL}(s_t, a_t) = R(s_t, a_t) - \beta \log \frac{\pi_\theta(a_t | s_t)}{\pi_{ref}(a_t | s_t)}$
+- Tỷ lệ xác suất: $r_t(\theta) = \frac\{\pi_\theta(a_t | s_t)\}\{\pi_\{\theta_\{old\}\}(a_t | s_t)\}$
+- $\hat\{A\}_t$ là Lợi thế (Advantage) được tính qua GAE từ Critic và Reward.
+- KL Penalty: $R_\{KL\}(s_t, a_t) = R(s_t, a_t) - \beta \log \frac\{\pi_\theta(a_t | s_t)\}\{\pi_\{ref\}(a_t | s_t)\}$
 
 ---
 
@@ -126,13 +126,13 @@ Với mỗi prompt $q$:
 2. Đánh giá tất cả response bằng hàm thưởng $R$ để thu về tập điểm: $\{r_1, r_2, ..., r_G\}$.
 3. Tính Lợi thế tương đối (Relative Advantage) $A_i$ bằng cách chuẩn hóa điểm số trong nhóm:
 
-$$A_i = \frac{r_i - \text{mean}(R)}{\text{std}(R)}$$
+$$A_i = \frac\{r_i - \text\{mean\}(R)\}\{\text\{std\}(R)\}$$
 
 4. Hàm mục tiêu GRPO:
-$$J_{GRPO}(\theta) = \frac{1}{G} \sum_{i=1}^G \sum_{t=1}^T \left[ \min\left( \frac{\pi_\theta(o_{i,t} | q, o_{i,<t})}{\pi_{\theta_{old}}(o_{i,t} | q, o_{i,<t})} A_i, \text{clip}\left(\frac{\pi_\theta(o_{i,t} | q, o_{i,<t})}{\pi_{\theta_{old}}(o_{i,t} | q, o_{i,<t})}, 1-\epsilon, 1+\epsilon\right) A_i \right) - \beta D_{KL}(\pi_\theta || \pi_{ref}) \right]$$
+$$J_\{GRPO\}(\theta) = \frac\{1\}\{G\} \sum_\{i=1\}^G \sum_\{t=1\}^T \left[ \min\left( \frac\{\pi_\theta(o_\{i,t\} | q, o_\{i,<t\})\}\{\pi_\{\theta_\{old\}\}(o_\{i,t\} | q, o_\{i,<t\})\} A_i, \text\{clip\}\left(\frac\{\pi_\theta(o_\{i,t\} | q, o_\{i,<t\})\}\{\pi_\{\theta_\{old\}\}(o_\{i,t\} | q, o_\{i,<t\})\}, 1-\epsilon, 1+\epsilon\right) A_i \right) - \beta D_\{KL\}(\pi_\theta || \pi_\{ref\}) \right]$$
 
-Trong đó $D_{KL}$ dùng estimator xấp xỉ K3 của Schulman:
-$$D_{KL}(\pi_\theta || \pi_{ref}) = \frac{\pi_{ref}(o_{i,t} | q, o_{i,<t})}{\pi_\theta(o_{i,t} | q, o_{i,<t})} - \log \frac{\pi_{ref}(o_{i,t} | q, o_{i,<t})}{\pi_\theta(o_{i,t} | q, o_{i,<t})} - 1$$
+Trong đó $D_\{KL\}$ dùng estimator xấp xỉ K3 của Schulman:
+$$D_\{KL\}(\pi_\theta || \pi_\{ref\}) = \frac\{\pi_\{ref\}(o_\{i,t\} | q, o_\{i,<t\})\}\{\pi_\theta(o_\{i,t\} | q, o_\{i,<t\})\} - \log \frac\{\pi_\{ref\}(o_\{i,t\} | q, o_\{i,<t\})\}\{\pi_\theta(o_\{i,t\} | q, o_\{i,<t\})\} - 1$$
 
 ---
 

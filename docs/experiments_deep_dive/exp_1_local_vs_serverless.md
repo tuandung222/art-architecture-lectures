@@ -61,12 +61,12 @@ Bài này benchmark trên cùng task (2048 với Qwen 2.5 3B, 40 step) với c�
 
 ```mermaid
 graph TD
-    A[Iteration budget] --> B{Nhiều experiment nhỏ?}
+    A[Iteration budget] --> B\{Nhiều experiment nhỏ?\}
     B -- Có --> SB[Serverless thắng]
-    B -- Không --> Q1{Cần full control?}
+    B -- Không --> Q1\{Cần full control?\}
 
     Q1 -- Có --> LB[Local thắng]
-    Q1 -- Không --> Q2{Long-running job?}
+    Q1 -- Không --> Q2\{Long-running job?\}
 
     Q2 -- Có --> LB
     Q2 -- Không --> SB

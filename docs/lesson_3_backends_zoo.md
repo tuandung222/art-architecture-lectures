@@ -240,7 +240,7 @@ graph LR
     R3[Rank 3 \n seq[3N/4:N]] -->|K, V| R0
 ```
 
-Mỗi rank giữ Q cho phần sequence của mình, nhưng vòng quanh K, V của các rank khác để tính attention. Communication overhead là $O(\text{seq\_len} \times \text{head\_dim} \times \text{layers})$.
+Mỗi rank giữ Q cho phần sequence của mình, nhưng vòng quanh K, V của các rank khác để tính attention. Communication overhead là $O(\text\{seq\_len\} \times \text\{head\_dim\} \times \text\{layers\})$.
 
 ### 5.3. LoRA trong Megatron
 `megatron/lora.py` (63 KB) hiện thực LoRA trong Megatron framework:

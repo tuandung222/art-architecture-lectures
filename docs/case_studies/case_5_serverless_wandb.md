@@ -284,14 +284,14 @@ async def train():
                 for _ in range(2)   # 2 scenario mỗi step
             ),
             after_each=judge_with_ruler,
-            pbar_desc=f"step {step}",
+            pbar_desc=f"step \{step\}",
             max_exceptions=0.1,
         )
         result = await backend.train(model, train_groups, learning_rate=5e-6)
         await model.log(
             train_groups, metrics=result.metrics, step=result.step, split="train"
         )
-        print(f"step={step} reward={result.metrics.get('reward', 0):.3f}")
+        print(f"step=\{step\} reward=\{result.metrics.get('reward', 0):.3f\}")
 
 asyncio.run(train())
 ```
@@ -350,4 +350,4 @@ sequenceDiagram
 | `_get_step` | Lấy step mới nhất từ W&B artifacts |
 | Auto-metric logging | W&B dashboard miễn phí |
 
-Kết thúc 5 case studies. Tiếp theo, [theory_deep_dive](theory_deep_dive/roadmap_theory) sẽ đi sâu vào toán học của GRPO/CISPO/RULER.
+Kết thúc 5 case studies. Tiếp theo, [theory_deep_dive](../theory_deep_dive/roadmap_theory) sẽ đi sâu vào toán học của GRPO/CISPO/RULER.

@@ -13,19 +13,19 @@ CISPO là biến thể policy gradient đề xuất trong Mixture-of-Experts pap
 
 PPO (Schulman 2017):
 
-\[
-L^{PPO}(\theta) = -\mathbb{E}_{(s,a)\sim\pi_{\text{old}}} \left[ \min\left( \rho_\theta A,\; \text{clip}(\rho_\theta, 1-\varepsilon, 1+\varepsilon) A \right) \right]
-\]
+$$
+L^\{PPO\}(\theta) = -\mathbb\{E\}_\{(s,a)\sim\pi_\{\text\{old\}\}\} \left[ \min\left( \rho_\theta A,\; \text\{clip\}(\rho_\theta, 1-\varepsilon, 1+\varepsilon) A \right) \right]
+$$
 
-với \(\rho_\theta = \pi_\theta(a|s) / \pi_{\text{old}}(a|s)\).
+với $\rho_\theta = \pi_\theta(a|s) / \pi_\{\text\{old\}\}(a|s)$.
 
 Hai term `min` và `clip` tạo ra **3 vùng**:
 
-1. **Nội clip range** (\(1-\varepsilon \le \rho \le 1+\varepsilon\)): cả hai term bằng \(\rho A\). Gradient chảy qua \(\rho\) và qua `log π` (qua \(\rho\) dưới dạng \(\partial \rho / \partial \theta\)).
-2. **Ngoài clip + A > 0**: term `min` là `clip(...) A`, term kia là \(\rho A\). Min chọn `clip(...) A` (vì \(\rho A > \text{clip} A\)). Gradient chỉ chảy qua `clip` (hằng số), không qua \(\rho\).
+1. **Nội clip range** ($1-\varepsilon \le \rho \le 1+\varepsilon$): cả hai term bằng $\rho A$. Gradient chảy qua $\rho$ và qua `log π` (qua $\rho$ dưới dạng $\partial \rho / \partial \theta$).
+2. **Ngoài clip + A > 0**: term `min` là `clip(...) A`, term kia là $\rho A$. Min chọn `clip(...) A` (vì $\rho A > \text\{clip\} A$). Gradient chỉ chảy qua `clip` (hằng số), không qua $\rho$.
 3. **Ngoài clip + A < 0**: tương tự, chọn `clip(...) A` (vì `clip A > \rho A`, dương hơn). Gradient qua `clip`.
 
-Hệ quả: PPO **cho phép gradient chảy qua \(\rho\)** khi ratio nằm trong dải clip. Nghĩa là nếu policy "tự tin" với action (ratio lớn), gradient được scale up.
+Hệ quả: PPO **cho phép gradient chảy qua $\rho$** khi ratio nằm trong dải clip. Nghĩa là nếu policy "tự tin" với action (ratio lớn), gradient được scale up.
 
 ---
 
@@ -35,16 +35,16 @@ Hai vấn đề đặc biệt nghiêm trọng trong agentic RL:
 
 ### 2.1. Token-level ratio variance cao
 
-Với rollout dài (1000+ token), \(\rho_\theta(a_t|s_t)\) dao động mạnh giữa các token. Một số token có ratio = 0.001 (model rất không tự tin so với old), một số = 100.0. PPO clip \(\rho\) ở dải [0.8, 1.2] (với \(\varepsilon = 0.2\)) sẽ:
+Với rollout dài (1000+ token), $\rho_\theta(a_t|s_t)$ dao động mạnh giữa các token. Một số token có ratio = 0.001 (model rất không tự tin so với old), một số = 100.0. PPO clip $\rho$ ở dải [0.8, 1.2] (với $\varepsilon = 0.2$) sẽ:
 
 * Cho ratio 0.001 -> 0.8 (scale up 800x).
 * Cho ratio 100.0 -> 1.2 (scale down 80x).
 
-Nhưng **gradient** vẫn chảy qua \(\rho\) trong dải clip. Nghĩa là: token có ratio = 1.05 (gần 1) có gradient tự nhiên; token có ratio = 0.85 (sau clip = 0.85) cũng có gradient tự nhiên; nhưng token có ratio = 0.5 (sau clip = 0.8) bị **scale up** đột ngột.
+Nhưng **gradient** vẫn chảy qua $\rho$ trong dải clip. Nghĩa là: token có ratio = 1.05 (gần 1) có gradient tự nhiên; token có ratio = 0.85 (sau clip = 0.85) cũng có gradient tự nhiên; nhưng token có ratio = 0.5 (sau clip = 0.8) bị **scale up** đột ngột.
 
 ### 2.2. Importance-sampling hiệu quả kém
 
-Trong PPO, `min` operator tạo ra một "trust region" ngầm. Khi policy lệch xa khỏi \(\pi_{\text{old}}\), một số token bị clip và contribution giảm. Nhưng effect không đối xứng giữa **advantage dương** và **advantage âm**:
+Trong PPO, `min` operator tạo ra một "trust region" ngầm. Khi policy lệch xa khỏi $\pi_\{\text\{old\}\}$, một số token bị clip và contribution giảm. Nhưng effect không đối xứng giữa **advantage dương** và **advantage âm**:
 
 * A > 0, ratio > 1+ε: clip làm giảm update (an toàn).
 * A > 0, ratio < 1-ε: clip làm tăng update ngược chiều có lợi (vẫn OK).
@@ -59,14 +59,14 @@ Trong agentic RL với rollout dài, tỉ lệ token có A < 0 (rollout "xấu")
 
 CISPO (đề xuất trong context MoE training, OpenAI 2024):
 
-\[
-L^{CISPO}(\theta) = -\mathbb{E}_{(s,a)\sim\pi_{\text{old}}} \left[ \text{clip}(\rho_\theta, 1-\varepsilon, 1+\varepsilon) \cdot A \cdot \log \pi_\theta(a|s) \right]
-\]
+$$
+L^\{CISPO\}(\theta) = -\mathbb\{E\}_\{(s,a)\sim\pi_\{\text\{old\}\}\} \left[ \text\{clip\}(\rho_\theta, 1-\varepsilon, 1+\varepsilon) \cdot A \cdot \log \pi_\theta(a|s) \right]
+$$
 
 Hai khác biệt so với PPO:
 
-1. **Clip \(\rho\) rồi detach**: ratio được clip và `detach()`, chỉ đóng vai trò **weight** không có gradient.
-2. **Log pi thoáng**: gradient chỉ chảy qua \(\log \pi_\theta\), không qua \(\rho\).
+1. **Clip $\rho$ rồi detach**: ratio được clip và `detach()`, chỉ đóng vai trò **weight** không có gradient.
+2. **Log pi thoáng**: gradient chỉ chảy qua $\log \pi_\theta$, không qua $\rho$.
 
 Trong code (`src/art/loss.py`):
 
@@ -91,27 +91,27 @@ else:
 
 ### 4.1. Gradient của CISPO
 
-\[
-\frac{\partial L}{\partial \theta} = -\mathbb{E}\left[ \text{clip}(\rho, 1-\varepsilon, 1+\varepsilon) \cdot A \cdot \frac{\partial \log \pi_\theta}{\partial \theta} \right]
-\]
+$$
+\frac\{\partial L\}\{\partial \theta\} = -\mathbb\{E\}\left[ \text\{clip\}(\rho, 1-\varepsilon, 1+\varepsilon) \cdot A \cdot \frac\{\partial \log \pi_\theta\}\{\partial \theta\} \right]
+$$
 
-Để ý: `clip(\rho)` là hằng số w.r.t. \(\theta\) (vì `detach()`). Gradient chỉ chảy qua `log π_θ`. Đây là REINFORCE với weight = clipped importance ratio.
+Để ý: `clip(\rho)` là hằng số w.r.t. $\theta$ (vì `detach()`). Gradient chỉ chảy qua `log π_θ`. Đây là REINFORCE với weight = clipped importance ratio.
 
 ### 4.2. So sánh với PPO
 
 PPO gradient trong dải clip (vùng 1 ở trên):
 
-\[
-\frac{\partial L^{PPO}}{\partial \theta} = -\mathbb{E}\left[ A \cdot \rho \cdot \frac{\partial \log \pi_\theta}{\partial \theta} + A \cdot \frac{\partial \rho}{\partial \theta} \right]
-\]
+$$
+\frac\{\partial L^\{PPO\}\}\{\partial \theta\} = -\mathbb\{E\}\left[ A \cdot \rho \cdot \frac\{\partial \log \pi_\theta\}\{\partial \theta\} + A \cdot \frac\{\partial \rho\}\{\partial \theta\} \right]
+$$
 
-Term thứ hai (\(A \cdot \partial \rho / \partial \theta\)) tạo ra **gradient amplification** không mong muốn. Nếu policy đang lệch mạnh khỏi \(\pi_{\text{old}}\) mà vẫn trong dải clip (hiếm nhưng có thể xảy ra ở training đầu), gradient bị scale up.
+Term thứ hai ($A \cdot \partial \rho / \partial \theta$) tạo ra **gradient amplification** không mong muốn. Nếu policy đang lệch mạnh khỏi $\pi_\{\text\{old\}\}$ mà vẫn trong dải clip (hiếm nhưng có thể xảy ra ở training đầu), gradient bị scale up.
 
-CISPO **detach \(\rho\)** -> term thứ hai bằng 0. Gradient chỉ phụ thuộc vào `log π_θ` và advantage. An toàn hơn.
+CISPO **detach $\rho$** -> term thứ hai bằng 0. Gradient chỉ phụ thuộc vào `log π_θ` và advantage. An toàn hơn.
 
 ### 4.3. Hệ quả cho importance sampling
 
-Mục đích của IS weight là **điều chỉnh phân phối sampling** từ \(\pi_{\text{old}}\) sang \(\pi_\theta\). Nếu \(\pi_\theta\) lệch, IS weight lớn để "phạt" sample đó. Nhưng trong PPO, IS weight cũng **ảnh hưởng gradient** -> mâu thuẫn.
+Mục đích của IS weight là **điều chỉnh phân phối sampling** từ $\pi_\{\text\{old\}\}$ sang $\pi_\theta$. Nếu $\pi_\theta$ lệch, IS weight lớn để "phạt" sample đó. Nhưng trong PPO, IS weight cũng **ảnh hưởng gradient** -> mâu thuẫn.
 
 CISPO tách bạch:
 
@@ -122,15 +122,15 @@ CISPO tách bạch:
 
 ---
 
-## 5. Tại sao clip \(\rho\) quan trọng
+## 5. Tại sao clip $\rho$ quan trọng
 
 Nếu không clip, IS weight có thể bùng nổ:
 
-* \(\pi_{\text{old}} = 0.001\), \(\pi_\theta = 0.5\) -> \(\rho = 500\).
+* $\pi_\{\text\{old\}\} = 0.001$, $\pi_\theta = 0.5$ -> $\rho = 500$.
 * Advantage A = 1.
-* Update magnitude: \(500 \times 1 \times \log \pi_\theta\) -> loss có thể overflow.
+* Update magnitude: $500 \times 1 \times \log \pi_\theta$ -> loss có thể overflow.
 
-CISPO clip \(\rho\) ở `1 + ε_H` (mặc định 4.0). Với clip 4.0, update magnitude bị giới hạn, gradient không overflow.
+CISPO clip $\rho$ ở `1 + ε_H` (mặc định 4.0). Với clip 4.0, update magnitude bị giới hạn, gradient không overflow.
 
 Nếu muốn clip chặt hơn (bảo thủ), dùng `epsilon_high=2.0`. Nếu muốn clip lỏng (cho phép update lớn), dùng `epsilon_high=10.0`.
 
@@ -215,10 +215,10 @@ Vì CISPO không cần value network:
 
 Rollout dài 100 token, advantage = [từng token] với A cao ở giữa (token quan trọng), A thấp ở đầu/cuối.
 
-Token 50 (giữa rollout): \(\pi_{\text{old}} = 0.05\), \(\pi_\theta = 0.20\) -> \(\rho = 4.0\). A = 0.5.
+Token 50 (giữa rollout): $\pi_\{\text\{old\}\} = 0.05$, $\pi_\theta = 0.20$ -> $\rho = 4.0$. A = 0.5.
 
-* **PPO** (ε=0.2): clip \(\rho\) về 1.2. Update magnitude: \(1.2 \times 0.5 = 0.6\). Nhưng gradient còn có term từ \(\partial \rho / \partial \theta\) -> thực tế ~ 0.7-0.8.
-* **CISPO** (ε=1.0, ε_H=4.0): clip \(\rho\) về 4.0 (giữ nguyên). Update magnitude: \(4.0 \times 0.5 = 2.0\). Gradient chỉ qua `log π_θ`.
+* **PPO** (ε=0.2): clip $\rho$ về 1.2. Update magnitude: $1.2 \times 0.5 = 0.6$. Nhưng gradient còn có term từ $\partial \rho / \partial \theta$ -> thực tế ~ 0.7-0.8.
+* **CISPO** (ε=1.0, ε_H=4.0): clip $\rho$ về 4.0 (giữ nguyên). Update magnitude: $4.0 \times 0.5 = 2.0$. Gradient chỉ qua `log π_θ`.
 
 CISPO cho update mạnh hơn 3-4x cho token quan trọng. Khi rollout dài, đây là điểm khác biệt lớn.
 
@@ -226,7 +226,7 @@ CISPO cho update mạnh hơn 3-4x cho token quan trọng. Khi rollout dài, đâ
 
 ## 11. Kết nối với bài tiếp theo
 
-Trong bài này ta đã thấy \(\rho = \pi_\theta / \pi_{\text{old}}\) ở mức **token**. Bài tiếp theo ([Theory 3: IS Levels](theory_3_is_levels)) sẽ phân tích 3 cách aggregate ratio khác (sequence, average, geometric) và bias-variance trade-off.
+Trong bài này ta đã thấy $\rho = \pi_\theta / \pi_\{\text\{old\}\}$ ở mức **token**. Bài tiếp theo ([Theory 3: IS Levels](theory_3_is_levels)) sẽ phân tích 3 cách aggregate ratio khác (sequence, average, geometric) và bias-variance trade-off.
 
 ---
 
@@ -234,8 +234,8 @@ Trong bài này ta đã thấy \(\rho = \pi_\theta / \pi_{\text{old}}\) ở mứ
 
 | Khía cạnh | PPO | CISPO |
 | --- | --- | --- |
-| Clip | Trên `min` của 2 term | Trên \(\rho\) (detached) |
-| Gradient qua \(\rho\) | Có (khi trong dải clip) | Không (detach) |
+| Clip | Trên `min` của 2 term | Trên $\rho$ (detached) |
+| Gradient qua $\rho$ | Có (khi trong dải clip) | Không (detach) |
 | Value network | Cần | Không |
 | Memory | Cao | Thấp |
 | ε mặc định | 0.2 | 1.0 (dải dưới) |

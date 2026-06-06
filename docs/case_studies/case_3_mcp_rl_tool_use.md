@@ -162,7 +162,7 @@ async def run_agent_with_arthur_observability(model, scenario):
     return traj
 ```
 
-`capture_auto_trajectory` patch HTTPX để bắt **mọi** HTTP response, parse SSE, build trajectory. Xem chi tiết ở [Bài 2](lesson_2_client_server_architecture) và [experiment 5](experiments_deep_dive/exp_5_auto_trajectory_httpx).
+`capture_auto_trajectory` patch HTTPX để bắt **mọi** HTTP response, parse SSE, build trajectory. Xem chi tiết ở [Bài 2](../lesson_2_client_server_architecture) và [experiment 5](../experiments_deep_dive/exp_5_auto_trajectory_httpx).
 
 ---
 

@@ -137,7 +137,7 @@ asyncio.run(train())
 
 Các chi tiết quan trọng:
 
-* **18 game song song**: K=18 rollout cho cùng step, tạo group lớn. Tại sao K lớn? Vì GRPO variance giảm theo \(\sqrt{K}\); K=18 cho std sai số chuẩn hóa advantage ~ 1/4 so với K=4.
+* **18 game song song**: K=18 rollout cho cùng step, tạo group lớn. Tại sao K lớn? Vì GRPO variance giảm theo $\sqrt\{K\}$; K=18 cho std sai số chuẩn hóa advantage ~ 1/4 so với K=4.
 * **`_experimental_pull_from_s3`**: tiếp tục từ checkpoint S3 nếu job bị kill.
 * **`_experimental_push_to_s3`**: lưu checkpoint mỗi step. Cần thiết vì 40 step có thể mất 4-6 giờ.
 * **`max_exceptions=10`**: chịu tối đa 10 game crash (do invalid move, API timeout).

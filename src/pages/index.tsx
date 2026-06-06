@@ -243,7 +243,7 @@ export default function Home(): ReactNode {
               💻 Thực Hành: Tự Xây Dựng Toy ART Pipeline
             </Heading>
             <p style={{ maxWidth: '700px', margin: '0 auto 2rem auto', opacity: 0.8, lineHeight: '1.6' }}>
-              Trong Bài 8, chúng ta sẽ tự tay triển khai bằng Python thuần một pipeline 3 giai đoạn (rollout -> train -> eval) của ART, mô phỏng TrainableModel rút gọn, gather_trajectory_groups và chạy cập nhật CISPO loss từ con số 0.
+              Trong Bài 8, chúng ta sẽ tự tay triển khai bằng Python thuần một pipeline 3 giai đoạn (rollout {'->'} train {'->'} eval) của ART, mô phỏng TrainableModel rút gọn, gather_trajectory_groups và chạy cập nhật CISPO loss từ con số 0.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <Link

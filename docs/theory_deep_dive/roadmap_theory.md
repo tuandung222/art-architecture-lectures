@@ -46,14 +46,14 @@ graph TD
 
 ART loss có dạng tổng quát:
 
-\[
-L(\theta) = -\mathbb{E}_{(s,a)\sim\pi_{\theta_{\text{old}}}} \left[ \text{weight}(s,a) \cdot A(s,a) \cdot \log \pi_\theta(a|s) \right]
-\]
+$$
+L(\theta) = -\mathbb\{E\}_\{(s,a)\sim\pi_\{\theta_\{\text\{old\}\}\}\} \left[ \text\{weight\}(s,a) \cdot A(s,a) \cdot \log \pi_\theta(a|s) \right]
+$$
 
 Trong đó:
 
-* \(A(s,a)\) là advantage (Bài 1).
-* \(\text{weight}(s,a)\) là importance-sampling weight (Bài 2, 3).
+* $A(s,a)$ là advantage (Bài 1).
+* $\text\{weight\}(s,a)$ là importance-sampling weight (Bài 2, 3).
 * KL penalty (Bài 4) thêm vào advantage.
 * Reward (Bài 5) cung cấp tín hiệu cho advantage.
 
@@ -65,33 +65,33 @@ Mục tiêu của 5 bài này: hiểu rõ từng thành phần, khi nào nên t�
 
 REINFORCE (Williams 1992):
 
-\[
-\nabla L = -\mathbb{E}_\tau \left[ R(\tau) \nabla \log \pi_\theta(\tau) \right]
-\]
+$$
+\nabla L = -\mathbb\{E\}_\tau \left[ R(\tau) \nabla \log \pi_\theta(\tau) \right]
+$$
 
-REINFORCE với baseline \(b\):
+REINFORCE với baseline $b$:
 
-\[
-\nabla L = -\mathbb{E}_\tau \left[ (R(\tau) - b) \nabla \log \pi_\theta(\tau) \right]
-\]
+$$
+\nabla L = -\mathbb\{E\}_\tau \left[ (R(\tau) - b) \nabla \log \pi_\theta(\tau) \right]
+$$
 
 PPO (Schulman 2017) thêm clip:
 
-\[
-L^{PPO} = -\mathbb{E} \left[ \min(\rho A, \text{clip}(\rho, 1-\varepsilon, 1+\varepsilon) A) \right]
-\]
+$$
+L^\{PPO\} = -\mathbb\{E\} \left[ \min(\rho A, \text\{clip\}(\rho, 1-\varepsilon, 1+\varepsilon) A) \right]
+$$
 
 GRPO (DeepSeek 2024) thay baseline bằng group statistics:
 
-\[
-A_i = \frac{r_i - \mu_G}{\sigma_G}
-\]
+$$
+A_i = \frac\{r_i - \mu_G\}\{\sigma_G\}
+$$
 
 CISPO (đề xuất trong Mixture-of-Experts paper) thay clip trong PPO bằng clip ngoài:
 
-\[
-L^{CISPO} = -\mathbb{E} \left[ \text{clip}(\rho, 1-\varepsilon, 1+\varepsilon) A \log \pi \right]
-\]
+$$
+L^\{CISPO\} = -\mathbb\{E\} \left[ \text\{clip\}(\rho, 1-\varepsilon, 1+\varepsilon) A \log \pi \right]
+$$
 
 ART mặc định dùng GRPO + CISPO.
 
@@ -101,9 +101,9 @@ ART mặc định dùng GRPO + CISPO.
 
 Bạn cần biết:
 
-* **Policy gradient theorem**: \(\nabla J(\theta) = \mathbb{E}[\nabla \log \pi_\theta(a|s) \cdot A(s,a)]\).
-* **Importance sampling**: \(\mathbb{E}_{p}[f] = \mathbb{E}_{q}[f \cdot p/q]\).
-* **Stochastic gradient descent**: \(\theta \leftarrow \theta - \eta \nabla L\).
+* **Policy gradient theorem**: $\nabla J(\theta) = \mathbb\{E\}[\nabla \log \pi_\theta(a|s) \cdot A(s,a)]$.
+* **Importance sampling**: $\mathbb\{E\}_\{p\}[f] = \mathbb\{E\}_\{q\}[f \cdot p/q]$.
+* **Stochastic gradient descent**: $\theta \leftarrow \theta - \eta \nabla L$.
 * **Replay buffer / on-policy vs off-policy**: GRPO thuộc về on-policy (sampling mỗi step).
 * **PyTorch cơ bản**: tensor ops, autograd.
 
@@ -113,15 +113,15 @@ Nếu chưa vững, đọc [Bài 0](../lesson_0_agent_rl_fundamentals) trước.
 
 ## Notation
 
-* \(\pi_\theta\): policy hiện tại (model parameters \(\theta\)).
-* \(\pi_{\theta_{\text{old}}}\): policy lúc rollout (snapshot).
-* \(\pi_{\text{ref}}\): reference policy (thường là base model).
-* \(\rho = \pi_\theta / \pi_{\theta_{\text{old}}}\) (token) hoặc aggregated (sequence, etc.).
-* \(A_i\): advantage của rollout \(i\).
-* \(r_i\): reward của rollout \(i\).
-* \(\mu_G, \sigma_G\): mean, std reward trong group \(G\).
-* \(\beta\): KL penalty coefficient.
-* \(\varepsilon, \varepsilon_H\): clip thấp, clip trên cho \(\rho\).
+* $\pi_\theta$: policy hiện tại (model parameters $\theta$).
+* $\pi_\{\theta_\{\text\{old\}\}\}$: policy lúc rollout (snapshot).
+* $\pi_\{\text\{ref\}\}$: reference policy (thường là base model).
+* $\rho = \pi_\theta / \pi_\{\theta_\{\text\{old\}\}\}$ (token) hoặc aggregated (sequence, etc.).
+* $A_i$: advantage của rollout $i$.
+* $r_i$: reward của rollout $i$.
+* $\mu_G, \sigma_G$: mean, std reward trong group $G$.
+* $\beta$: KL penalty coefficient.
+* $\varepsilon, \varepsilon_H$: clip thấp, clip trên cho $\rho$.
 
 ---
 

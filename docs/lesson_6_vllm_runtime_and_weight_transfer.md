@@ -323,17 +323,17 @@ sequenceDiagram
 
 Một ước lượng đơn giản cho thời gian hot-swap:
 
-\[
-T_{\text{swap}} = \frac{N_{\text{bytes}}}{B_{\text{eff}}} + T_{\text{setup}}
-\]
+$$
+T_\{\text\{swap\}\} = \frac\{N_\{\text\{bytes\}\}\}\{B_\{\text\{eff\}\}\} + T_\{\text\{setup\}\}
+$$
 
 với:
 
-* \(N_{\text{bytes}}\): lượng dữ liệu cần gửi (adapter nhỏ, full model lớn).
-* \(B_{\text{eff}}\): bandwidth hiệu dụng (NVLink ~ 600 GB/s, IB ~ 50 GB/s).
-* \(T_{\text{setup}}\): thời gian vLLM reload model + warm up KV cache (5-10s cho 7B).
+* $N_\{\text\{bytes\}\}$: lượng dữ liệu cần gửi (adapter nhỏ, full model lớn).
+* $B_\{\text\{eff\}\}$: bandwidth hiệu dụng (NVLink ~ 600 GB/s, IB ~ 50 GB/s).
+* $T_\{\text\{setup\}\}$: thời gian vLLM reload model + warm up KV cache (5-10s cho 7B).
 
-Ví dụ: 7B model BF16 = 14 GB, NVLink 600 GB/s. \(T_{\text{transfer}} = 14 / 600 \approx 0.023s\). Nghe nhỏ, nhưng thực tế **TCPStore + ctypes overhead** đẩy lên 1-2s. Với LoRA 64-rank = ~50 MB, transfer gần như tức thì.
+Ví dụ: 7B model BF16 = 14 GB, NVLink 600 GB/s. $T_\{\text\{transfer\}\} = 14 / 600 \approx 0.023s$. Nghe nhỏ, nhưng thực tế **TCPStore + ctypes overhead** đẩy lên 1-2s. Với LoRA 64-rank = ~50 MB, transfer gần như tức thì.
 
 Nếu training step trung bình của bạn > 30s, overhead hot-swap 1-2s không đáng kể. Nếu training step < 5s, hãy dùng `lora` để tránh bottleneck.
 

@@ -328,7 +328,7 @@ Nếu LangGraph của bạn có nhiều agent con, mỗi agent có thread riêng
 * Conversation đầu tiên -> `trajectory.messages_and_choices`.
 * Các conversation còn lại -> `trajectory.additional_histories` (mỗi cái là một `History`).
 
-Điều này cho phép loss function **mask toàn bộ history phụ** (không train sub-agent) hoặc **train mỗi history riêng** (multi-task). Xem chi tiết ở [experiment 3](experiments_deep_dive/exp_3_multiturn_tool_trajectories).
+Điều này cho phép loss function **mask toàn bộ history phụ** (không train sub-agent) hoặc **train mỗi history riêng** (multi-task). Xem chi tiết ở [experiment 3](../experiments_deep_dive/exp_3_multiturn_tool_trajectories).
 
 ---
 
